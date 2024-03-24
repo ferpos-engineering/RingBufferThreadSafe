@@ -20,6 +20,26 @@ bool BinarySemaphore::TryLockAndCopy(Message* from, Message* to)
 
 // *************************************************************************
 
+bool BinarySemaphore::LockAndCopy(Message* from, Message* to)
+{
+    std::lock_guard<std::mutex> lock(mutex);
+
+    bool result = false;
+
+    memcpy(to, from, sizeof(*to));
+
+    if (count == 0)
+    {
+        ++count;
+        condition.notify_one();
+        result = true;
+    }
+
+    return result;
+}
+
+// *************************************************************************
+
 bool BinarySemaphore::TryUnlockAndCopy(Message* from, Message* to)
 {
     std::lock_guard<std::mutex> lock(mutex);

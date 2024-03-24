@@ -46,7 +46,7 @@ bool RingBuffer::Put(Message* data)
     this->putLock.unlock();
 
     // Try to write data to the current buffer element.
-    if (!this->semaphores[current].TryLockAndCopy(data, &this->buffer[current]))
+    if (!this->semaphores[current].LockAndCopy(data, &this->buffer[current]))
     {
         printf("Producers too fast, element is already full.\r\n");
         return false;

@@ -19,6 +19,25 @@ public:
 
     // *********************************************************************
     //! @brief    It copies the content of the source object to destination
+    //!           locking the internal lock.
+    //!
+    //! @remarks  Calling this method does not block the execution of the
+    //!           client code.
+    //!           Calling this method locks the internal lock.
+    //!           If the lock is already locked, it copies anyway.
+    //! 
+    //! @param    from  Source of the copy.
+    //!
+    //! @param    to    Destination of the copy.
+    //!
+    //! @return   True  if internal lock become locked;
+    //!                 false, the internal lock was already locked.
+    //!
+    //!
+    bool LockAndCopy(Message* from, Message* to);
+
+    // *********************************************************************
+    //! @brief    It copies the content of the source object to destination
     //!           if the internal lock is unlocked.
     //!
     //! @remarks  Calling this method does not block the execution of the
