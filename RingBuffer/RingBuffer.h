@@ -40,24 +40,18 @@ public:
 
     // *********************************************************************
     //! @brief    It tries to get the next object available in the buffer.
-    //!           A call to this method does not block the caller.
+    //!           A call to this method blocks the caller for the specified
+    //!           timeout.
     //!
     //! @param    data  A pointer to the object in which the buffer element
     //!                 is copied.
+    //! @param    timeoutInMilliseconds  Amount of time the caller is blocked
+    //!                                  waiting for the object.
     //!
-    //! @return   True if the message has been found and extracted, false
-    //!           otherwise.
+    //! @return   True if the object has been found and extracted, false
+    //!           otherwise (timeout elapsed).
     //!
-    bool TryGet(Message* data);
-
-    // *********************************************************************
-    //! @brief    It gets the next object available in the buffer.
-    //!           A call to this method blocks the caller.
-    //!
-    //! @param    data  A pointer to the object in which the buffer element
-    //!                 is copied.
-    //!
-    void Get(Message* data);
+    bool TryGet(Message* data, int timeoutInMilliseconds);
 
 private:
 

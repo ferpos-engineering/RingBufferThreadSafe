@@ -9,6 +9,7 @@
 
 #define NUM_THREADS 10
 #define NUM_ELEMENTS_RINGBUFFER 50
+#define CONSUMER_ACCESS_TIMEOUT_IN_MS 5000u
 
 int values[NUM_THREADS];
 RingBuffer* ringBuffer;
@@ -24,7 +25,7 @@ void producer(int index)
 void consumer(int index)
 {
     Message message;
-    ringBuffer->Get(&message);
+    ringBuffer->TryGet(&message, CONSUMER_ACCESS_TIMEOUT_IN_MS);
 
     values[index] = message.integer1;
 }

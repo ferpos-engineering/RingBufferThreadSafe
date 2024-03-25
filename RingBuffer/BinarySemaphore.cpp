@@ -1,30 +1,12 @@
 #include "stdafx.h"
+#include <chrono>
 #include "BinarySemaphore.h"
-
-// *************************************************************************
-
-bool BinarySemaphore::TryLockAndCopy(Message* from, Message* to)
-{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if (count > 0)
-    {
-        return false;
-    }
-
-    memcpy(to, from, sizeof(*to));
-    ++count;
-    condition.notify_one();
-    return true;
-}
 
 // *************************************************************************
 
 bool BinarySemaphore::LockAndCopy(Message* from, Message* to)
 {
-    std::lock_guard<std::mutex> lock(mutex);
-
-    bool result = false;
+    lock_guard<std::mutex> lock(mutex);
 
     memcpy(to, from, sizeof(*to));
 
@@ -32,38 +14,31 @@ bool BinarySemaphore::LockAndCopy(Message* from, Message* to)
     {
         ++count;
         condition.notify_one();
-        result = true;
-    }
-
-    return result;
-}
-
-// *************************************************************************
-
-bool BinarySemaphore::TryUnlockAndCopy(Message* from, Message* to)
-{
-    std::lock_guard<std::mutex> lock(mutex);
-    if (count > 0)
-    {
-        memcpy(to, from, sizeof(*to));
-        --count;
         return true;
     }
+
     return false;
 }
 
 // *************************************************************************
 
-void BinarySemaphore::UnlockAndCopy(Message* from, Message* to)
+bool BinarySemaphore::TryUnlockAndCopy(
+    Message* from, Message* to, unsigned int timeoutInMilliseconds)
 {
-    std::unique_lock<std::mutex> lock(mutex);
+    unique_lock<std::mutex> lock(mutex);
     while (count == 0)
     {
-        condition.wait(lock);
+        if (condition.wait_for(
+            lock,
+            chrono::microseconds(timeoutInMilliseconds)) == cv_status::timeout)
+        {
+            return false;
+        }
     }
 
     memcpy(to, from, sizeof(*to));
     --count;
+    return true;
 }
 
 // *************************************************************************

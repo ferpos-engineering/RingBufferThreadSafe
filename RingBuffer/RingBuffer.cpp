@@ -57,7 +57,7 @@ bool RingBuffer::Put(Message* data)
 
 // *************************************************************************
 
-bool RingBuffer::TryGet(Message* data)
+bool RingBuffer::TryGet(Message* data, int timeoutInMilliseconds)
 {
     size_t current;
 
@@ -69,31 +69,13 @@ bool RingBuffer::TryGet(Message* data)
 
     // Try to gather the current element in buffer and copy it to data.
     if (!this->semaphores[current].TryUnlockAndCopy(
-        &this->buffer[current], data))
+        &this->buffer[current], data, timeoutInMilliseconds))
     {
-        printf("Consumer too fast, element is empty.\r\n");
+        printf("Consumer not served, element cannot be retrieved.\r\n");
         return false;
     }
 
     return true;
-}
-
-// *************************************************************************
-
-void RingBuffer::Get(Message* data)
-{
-    size_t current;
-
-    // Mutex and we get the current get index, then we push the index forward.
-    this->getLock.lock();
-    current = this->getIndex;
-    this->getIndex = (current + 1) % this->elements;
-    this->getLock.unlock();
-
-    // To gather the current element in buffer and copy it to data.
-    this->semaphores[current].UnlockAndCopy(&this->buffer[current], data);
-
-    memcpy(data, &this->buffer[current], sizeof(*data));
 }
 
 // *************************************************************************
